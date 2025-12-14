@@ -1,0 +1,22 @@
+# Правило для ipify.org (TLS/HTTPS)
+alert tls any any -> any any (msg:"INFO External IP lookup via ipify.org"; flow:established,to_server; tls.sni; content:"api.ipify.org"; classtype:policy-violation; sid:1000001; rev:1;)
+
+# Правило для ip-api.com (HTTP)
+alert http any any -> any any (msg:"INFO GeoIP service accessed (ip-api.com)"; flow:established,to_server; http.host; content:"ip-api.com"; classtype:policy-violation; sid:1000002; rev:1;)
+
+# Правило для ip-api.com JSON API
+alert http any any -> any any (msg:"INFO GeoIP lookup via ip-api JSON API"; flow:established,to_server; http.uri; content:"/json/"; classtype:policy-violation; sid:1000003; rev:1;)
+
+# Правила для Telegram с стандартным classtype
+alert tls any any -> any any (msg:"POSSIBLE DATA EXFIL Telegram Bot API"; flow:established,to_server; tls.sni; content:"api.telegram.org"; classtype:trojan-activity; sid:1000004; rev:1;)
+
+alert tls any any -> any any (msg:"Telegram infrastructure access"; flow:established,to_server; tls.sni; content:"telegram.org"; classtype:trojan-activity; sid:1000005; rev:1;)
+
+# Правило с threshold
+alert tls any any -> any any (msg:"POSSIBLE Telegram data exfiltration (high frequency)"; flow:established,to_server; tls.sni; content:"api.telegram.org"; threshold:type both, track by_src, count 3, seconds 6>
+
+# Комбинированное правило для инфостилера
+alert tls any any -> any any (msg:"POSSIBLE INFOSTEALER BEHAVIOR (IP lookup + GeoIP + Telegram)"; flow:established,to_server; tls.sni; content:"api.telegram.org"; classtype:trojan-activity; sid:1000007; rev:1>
+
+# Debug rule - будет срабатывать на ЛЮБОЙ трафик с Windows хоста
+alert ip 192.168.75.160 any -> any any (msg:"DEBUG: Traffic from Windows host"; sid:9999999; rev:1;)
